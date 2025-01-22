@@ -11,7 +11,7 @@ public class Notification(string recipient, string message, ENotificationChannel
     public ENotificationChannel NotificationChannel { get; private set; }
     public ENotificationStatus NotificationStatus { get; private set; } = ENotificationStatus.Pending;
     public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
-    public List<string> Errors { get; set; } = [];
+    public string Errors { get; set; } = string.Empty;
     public DateTime? SentAt { get; private set; } = null;
 
     public void ChangeNotificationStatus(ENotificationStatus notificationStatus)

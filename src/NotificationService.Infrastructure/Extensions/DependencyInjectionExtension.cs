@@ -8,6 +8,8 @@ using NotificationService.Domain.Repositories;
 using NotificationService.Domain.Services;
 using NotificationService.Infrastructure.DataAccess.DbContext;
 using NotificationService.Infrastructure.DataAccess.Repositories;
+using NotificationService.Infrastructure.Services;
+using NotificationService.Infrastructure.Services.QueueManager;
 
 namespace NotificationService.Infrastructure.Extensions;
 
@@ -18,7 +20,7 @@ public static class DependencyInjectionExtension
         AddDbContext(services, configuration);
         AddRabbitMQService(services, configuration);
         ConfigureFluentMigrator(services, configuration);
-        services.AddTransient<INotificationService, Services.NotificationService>();
+        services.AddTransient<INotificationQueueManager, NotificationQueueManager>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<INotificationRepository, NotificationRepository>();
     }
@@ -45,6 +47,8 @@ public static class DependencyInjectionExtension
     {
         services.AddMassTransit(busConfigurator =>
         {
+            busConfigurator.AddConsumer<ServicesManager>();
+            
             busConfigurator.UsingRabbitMq((ctx, cfg) =>
             {
                 cfg.Host(configuration.GetValue<string>("RabbitMQ:Host"), host =>
@@ -53,6 +57,10 @@ public static class DependencyInjectionExtension
                     host.Password(configuration.GetValue<string>("RabbitMQ:Password")!);
                 });
 
+                cfg.ReceiveEndpoint("notifications", e =>
+                {
+                    e.ConfigureConsumer<ServicesManager>(ctx);
+                });
                 cfg.ConfigureEndpoints(ctx);
             });
         });

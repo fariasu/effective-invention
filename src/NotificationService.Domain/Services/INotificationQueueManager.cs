@@ -5,7 +5,7 @@ using NotificationService.Domain.Enums;
 
 namespace NotificationService.Domain.Services;
 
-public interface INotificationService
+public interface INotificationQueueManager
 {
     public Task<ENotificationStatus> ProcessNotificationAsync(Notification notification, CancellationToken cancellationToken);
 }

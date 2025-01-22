@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="13.0.1" />
     <PackageReference Include="MassTransit" Version="8.3.5-develop.2179" />
     <PackageReference Include="MassTransit.RabbitMQ" Version="8.3.5-develop.2179" />
     <PackageReference Include="MediatR" Version="12.4.1" />
@@ -16,10 +17,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\NotificationService.Domain\NotificationService.Domain.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Logger\" />
   </ItemGroup>
 
 </Project>

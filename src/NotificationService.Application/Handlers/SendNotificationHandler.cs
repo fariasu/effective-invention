@@ -1,5 +1,4 @@
 ﻿using FluentValidation;
-using MassTransit.RabbitMqTransport;
 using MediatR;
 using NotificationService.Application.Validators;
 using NotificationService.Domain.Commands;
@@ -12,7 +11,7 @@ using NotificationService.Domain.Services;
 namespace NotificationService.Application.Handlers;
 
 public class SendNotificationHandler(
-    INotificationService notificationService, 
+    INotificationQueueManager notificationQueueManager, 
     INotificationRepository notificationRepository,
     IUnitOfWork unitOfWork)
     : IRequestHandler<SendNotificationCommand, OperationResult>
@@ -33,19 +32,18 @@ public class SendNotificationHandler(
                 throw new ValidationException(errors: validator.Errors);
             }
             
-            // Simula envio da notificação
             await SendNotificationAsync(notification, cancellationToken);
         }
         catch (ValidationException ex)
         {
-            // Atualizar para "Failed" em caso de erro
             notification.ChangeNotificationStatus(ENotificationStatus.Failed);
-            notification.Errors.AddRange(ex.Errors.Select(x => x.ErrorMessage));
+            notification.Errors = string.Join(", ", ex.Errors.Select(x => x.ErrorMessage));
+            
         }
         catch (Exception ex)
         {
             notification.ChangeNotificationStatus(ENotificationStatus.Failed);
-            notification.Errors.Add(ex.Message);
+            notification.Errors = ex.Message;
         }
         finally
         {
@@ -57,7 +55,7 @@ public class SendNotificationHandler(
 
     private async Task SendNotificationAsync(Notification notification, CancellationToken ct)
     {
-        var result = await notificationService.ProcessNotificationAsync(notification, ct);
+        var result = await notificationQueueManager.ProcessNotificationAsync(notification, ct);
 
         if (result.Equals(ENotificationStatus.Failed))
         {

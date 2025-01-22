@@ -1,17 +1,17 @@
-﻿using Microsoft.Extensions.Logging;
-using NotificationService.Domain.Commands;
+﻿using MassTransit;
 using NotificationService.Domain.Entities;
 using NotificationService.Domain.Enums;
 using NotificationService.Domain.Repositories;
 using NotificationService.Domain.Services;
 using NotificationService.Infrastructure.DataAccess.DbContext;
 
-namespace NotificationService.Infrastructure.Services;
+namespace NotificationService.Infrastructure.Services.QueueManager;
 
-public class NotificationService(
+public class NotificationQueueManager(
     ApplicationDbContext dbContext,
-    IUnitOfWork unitOfWork)
-    : INotificationService
+    IUnitOfWork unitOfWork,
+    IBus bus)
+    : INotificationQueueManager
 {
     public async Task<ENotificationStatus> ProcessNotificationAsync(
         Notification notification, 
@@ -19,8 +19,7 @@ public class NotificationService(
     {
         try
         {
-            await Task.Delay(15000, cancellationToken);
-            //await _messageQueue.EnqueueAsync(notification, cancellationToken);
+            await bus.Publish(notification, cancellationToken);
 
             notification.ChangeNotificationStatus(ENotificationStatus.Sent);
             notification.HasSent();
@@ -28,7 +27,7 @@ public class NotificationService(
         catch (Exception ex)
         {
             notification.ChangeNotificationStatus(ENotificationStatus.Failed);
-            notification.Errors.Add(ex.Message);
+            notification.Errors = ex.Message;
         }
         finally
         {

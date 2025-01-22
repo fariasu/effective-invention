@@ -1,5 +1,7 @@
-﻿using NotificationService.Domain.Entities;
+﻿using Microsoft.EntityFrameworkCore;
+using NotificationService.Domain.Entities;
 using NotificationService.Domain.Repositories;
+using NotificationService.Domain.Responses;
 using NotificationService.Infrastructure.DataAccess.DbContext;
 
 namespace NotificationService.Infrastructure.DataAccess.Repositories;
@@ -14,5 +16,10 @@ public class NotificationRepository(ApplicationDbContext dbContext) : INotificat
     public Task<Notification?> GetNotificationByIdAsync(Guid id)
     {
         throw new NotImplementedException();
+    }
+
+    public async Task<List<Notification>> GetAllNotificationsAsync()
+    {
+        return await dbContext.Notifications.AsNoTracking().ToListAsync();
     }
 }
