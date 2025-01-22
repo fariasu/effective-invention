@@ -5,9 +5,9 @@ using NotificationService.Domain.Repositories;
 using NotificationService.Domain.Services;
 using NotificationService.Infrastructure.DataAccess.DbContext;
 
-namespace NotificationService.Infrastructure.Services.QueueManager;
+namespace NotificationService.Infrastructure.Publishers;
 
-public class NotificationQueueManager(
+public class NotificationPublisher(
     ApplicationDbContext dbContext,
     IUnitOfWork unitOfWork,
     IBus bus)

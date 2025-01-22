@@ -20,7 +20,8 @@ public class SendNotificationHandler(
     {
         var validator = await new SendNotificationValidator().ValidateAsync(request, cancellationToken);
         
-        var notification = new Notification(request.Recipient, request.Content, request.NotificationChannel);
+        var notification = new Notification(request.Recipient, request.Content);
+        notification.ChangeNotificationChannel(request.NotificationChannel);
 
         await notificationRepository.AddNotificationAsync(notification);
 

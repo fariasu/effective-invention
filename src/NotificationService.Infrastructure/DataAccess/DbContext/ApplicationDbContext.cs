@@ -22,7 +22,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         var channelConverter = new ValueConverter<ENotificationChannel, string>(
             v => v.ToString(),
             v => (ENotificationChannel)Enum.Parse(typeof(ENotificationChannel), v));
-
+        
         modelBuilder.Entity<Notification>()
             .Property(n => n.NotificationChannel)
             .HasConversion(channelConverter);

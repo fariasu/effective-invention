@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <PackageReference Include="FluentMigrator.Runner" Version="6.2.0" />
+    <PackageReference Include="MassTransit.Newtonsoft" Version="8.3.5-develop.2179" />
     <PackageReference Include="MassTransit.RabbitMQ" Version="8.3.5-develop.2179" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.1" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.1" />

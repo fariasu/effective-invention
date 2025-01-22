@@ -1,13 +1,37 @@
 ﻿using MassTransit;
 using NotificationService.Domain.Entities;
+using NotificationService.Domain.Enums;
 
-namespace NotificationService.Infrastructure.Services;
-
-public abstract class ServicesManager : IConsumer<Notification>
+namespace NotificationService.Infrastructure.Services
 {
-    public Task Consume(ConsumeContext<Notification> context)
+    public class ServicesManager(Func<ENotificationChannel, INotificationHandler> handlerFactory)
+        : IConsumer<Notification>
     {
-        Console.WriteLine($"Received notification: {context.Message.Message}");
-        return Task.CompletedTask;
+        public async Task Consume(ConsumeContext<Notification> context)
+        {
+            var notification = context.Message;
+            
+            switch (notification.NotificationChannel)
+            {
+                case ENotificationChannel.Email:
+                case ENotificationChannel.SMS:
+                    var handler = handlerFactory(notification.NotificationChannel);
+                    await handler.HandleAsync(notification);
+                    break;
+
+                case ENotificationChannel.All:
+                    var emailHandler = handlerFactory(ENotificationChannel.Email);
+                    var smsHandler = handlerFactory(ENotificationChannel.SMS);
+
+                    await Task.WhenAll(
+                        emailHandler.HandleAsync(notification),
+                        smsHandler.HandleAsync(notification)
+                    );
+                    break;
+
+                default:
+                    throw new ArgumentException("Service type is invalid.");
+            }
+        }
     }
 }

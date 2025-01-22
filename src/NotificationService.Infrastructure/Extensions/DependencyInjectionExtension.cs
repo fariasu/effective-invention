@@ -4,12 +4,14 @@ using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using NotificationService.Domain.Enums;
 using NotificationService.Domain.Repositories;
 using NotificationService.Domain.Services;
 using NotificationService.Infrastructure.DataAccess.DbContext;
 using NotificationService.Infrastructure.DataAccess.Repositories;
+using NotificationService.Infrastructure.Publishers;
 using NotificationService.Infrastructure.Services;
-using NotificationService.Infrastructure.Services.QueueManager;
+using NotificationService.Infrastructure.Services.Handlers;
 
 namespace NotificationService.Infrastructure.Extensions;
 
@@ -20,9 +22,12 @@ public static class DependencyInjectionExtension
         AddDbContext(services, configuration);
         AddRabbitMQService(services, configuration);
         ConfigureFluentMigrator(services, configuration);
-        services.AddTransient<INotificationQueueManager, NotificationQueueManager>();
+        services.AddTransient<INotificationQueueManager, NotificationPublisher>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<INotificationRepository, NotificationRepository>();
+        
+        //Notification Handlers
+        ConfigureNotificationHandlers(services);
     }
     
     private static void AddDbContext(IServiceCollection services, IConfiguration configuration)
@@ -39,8 +44,7 @@ public static class DependencyInjectionExtension
             .ConfigureRunner(rb => rb
                 .AddPostgres()
                 .WithGlobalConnectionString(configuration.GetConnectionString("Database"))
-                .ScanIn(Assembly.Load("NotificationService.Infrastructure")).For.All())
-            .AddLogging(lb => lb.AddFluentMigratorConsole());
+                .ScanIn(Assembly.Load("NotificationService.Infrastructure")).For.All());
     }
 
     private static void AddRabbitMQService(IServiceCollection services, IConfiguration configuration)
@@ -51,6 +55,8 @@ public static class DependencyInjectionExtension
             
             busConfigurator.UsingRabbitMq((ctx, cfg) =>
             {
+                cfg.UseNewtonsoftJsonSerializer();
+                
                 cfg.Host(configuration.GetValue<string>("RabbitMQ:Host"), host =>
                 {
                     host.Username(configuration.GetValue<string>("RabbitMQ:Username")!);
@@ -61,8 +67,27 @@ public static class DependencyInjectionExtension
                 {
                     e.ConfigureConsumer<ServicesManager>(ctx);
                 });
+                
                 cfg.ConfigureEndpoints(ctx);
             });
+        });
+    }
+
+    private static void ConfigureNotificationHandlers(IServiceCollection services)
+    {
+        //Notification Handlers
+        services.AddScoped<EmailNotificationHandler>();
+        services.AddScoped<SMSNotificationHandler>();
+        services.AddScoped<ServicesManager>();
+        
+        services.AddScoped<Func<ENotificationChannel, INotificationHandler>>(provider => type =>
+        {
+            return type switch
+            {
+                ENotificationChannel.Email => provider.GetRequiredService<EmailNotificationHandler>(),
+                ENotificationChannel.SMS => provider.GetRequiredService<SMSNotificationHandler>(),
+                _ => throw new ArgumentException("Service type is invalid.", nameof(type)),
+            };
         });
     }
 }
