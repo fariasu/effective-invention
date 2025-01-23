@@ -20,7 +20,9 @@ public class NotificationServiceController : ControllerBase
     }
 
     [HttpGet("get-all")]
-    public async Task<ActionResult> GetNotifications([FromServices] IMediator mediator, [FromQuery] GetNotificationCommand request)
+    public async Task<ActionResult> GetNotifications(
+        [FromServices] IMediator mediator,
+        [FromQuery] GetNotificationCommand request)
     {
         var response = await mediator.Send(request);
         
