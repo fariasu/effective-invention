@@ -8,14 +8,14 @@ public class EmailNotificationHandler(BrevoOptions options) : INotificationHandl
 {
     public async Task HandleAsync(Notification notification)
     {
-        // BrevoClient client = new BrevoClient(options.ApiKey);
-        //
-        // await client.SendAsync(
-        //     new Sender(options.SenderName, options.SenderEmail),
-        //     new List<Recipient> { new Recipient(notification.Recipient.Split("@"[0]).ToString(), notification.Recipient) },
-        //     "Redefinição de senha.",
-        //     notification.Message,
-        //     true
-        // );
+        BrevoClient client = new BrevoClient(options.ApiKey);
+        
+        await client.SendAsync(
+            new Sender(options.SenderName, options.SenderEmail),
+            new List<Recipient> { new Recipient(notification.Recipient.Split("@"[0]).ToString(), notification.Recipient) },
+            "Redefinição de senha.",
+            notification.Message,
+            true
+        );
     }
 }
