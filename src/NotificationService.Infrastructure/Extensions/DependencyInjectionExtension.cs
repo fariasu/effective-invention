@@ -25,9 +25,11 @@ public static class DependencyInjectionExtension
         services.AddTransient<INotificationQueueManager, NotificationPublisher>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<INotificationRepository, NotificationRepository>();
-        
+
         //Notification Handlers
         ConfigureNotificationHandlers(services);
+        
+        BrevoOptions(services, configuration);
     }
     
     private static void AddDbContext(IServiceCollection services, IConfiguration configuration)
@@ -89,5 +91,21 @@ public static class DependencyInjectionExtension
                 _ => throw new ArgumentException("Service type is invalid.", nameof(type)),
             };
         });
+    }
+
+    private static void BrevoOptions(IServiceCollection services, IConfiguration configuration)
+    {
+        var apiKey = configuration["Brevo:ApiKey"];
+        var senderEmail = configuration["Brevo:SenderEmail"];
+        var senderName = configuration["Brevo:SenderName"];
+
+        var brevoOptions = new BrevoOptions
+        {
+            ApiKey = apiKey!,
+            SenderEmail = senderEmail!,
+            SenderName = senderName!
+        };
+
+        services.AddSingleton(brevoOptions);
     }
 }
