@@ -9,7 +9,7 @@ namespace NotificationService.API.Controllers;
 [Route("v1/")]
 public class NotificationServiceController : ControllerBase
 {
-    [HttpPost("send-notification")]
+    [HttpPost("send")]
     public async Task<ActionResult> SendNotification(
         [FromServices] IMediator mediator,
         [FromBody] SendNotificationCommand request)
@@ -19,8 +19,8 @@ public class NotificationServiceController : ControllerBase
         return Ok(response);
     }
 
-    [HttpGet("get-all-notifications")]
-    public async Task<ActionResult> GetNotifications([FromServices] IMediator mediator, [FromRoute] GetNotificationCommand request)
+    [HttpGet("get-all")]
+    public async Task<ActionResult> GetNotifications([FromServices] IMediator mediator, [FromQuery] GetNotificationCommand request)
     {
         var response = await mediator.Send(request);
         

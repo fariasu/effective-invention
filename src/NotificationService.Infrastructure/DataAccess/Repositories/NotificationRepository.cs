@@ -18,8 +18,12 @@ public class NotificationRepository(ApplicationDbContext dbContext) : INotificat
         throw new NotImplementedException();
     }
 
-    public async Task<List<Notification>> GetAllNotificationsAsync()
+    public async Task<List<Notification>> GetAllNotificationsAsync(int page, int pageSize)
     {
-        return await dbContext.Notifications.AsNoTracking().ToListAsync();
+        return await dbContext.Notifications
+            .AsNoTracking()
+            .Skip(page * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
     }
 }
